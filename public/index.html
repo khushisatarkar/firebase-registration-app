@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GATE Exam Registration</title>
+    <link rel="stylesheet" href="style.css" />
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        addDoc,
+        query,
+        where,
+        getDocs,
+      } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyB4Cvjw0ZlxzR_Qr4YYwT2BuIvCRWD8IFg",
+        authDomain: "my-project-88e4f.firebaseapp.com",
+        projectId: "my-project-88e4f",
+        storageBucket: "my-project-88e4f.appspot.com",
+        messagingSenderId: "825423036832",
+        appId: "1:825423036832:web:102a28a78a20e7f176e4c5",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      // Registration
+      window.addEventListener("DOMContentLoaded", () => {
+        const registerForm = document.getElementById("registerForm");
+
+        registerForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const fullName = document.getElementById("fullName").value;
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+          const college = document.getElementById("college").value;
+          const gateCode = document.getElementById("gateCode").value;
+
+          try {
+            await addDoc(collection(db, "students"), {
+              full_name: fullName,
+              email: email,
+              password: password,
+              college_name: college,
+              gate_code: gateCode,
+            });
+
+            alert("✅ Registration successful!");
+            e.target.reset();
+            showForm("login");
+          } catch (err) {
+            console.error(err);
+            alert("❌ Something went wrong while saving data.");
+          }
+        });
+
+        // Login
+        const loginForm = document.getElementById("loginForm");
+
+        loginForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const email = document.getElementById("loginEmail").value;
+          const password = document.getElementById("loginPassword").value;
+
+          try {
+            const q = query(
+              collection(db, "students"),
+              where("email", "==", email),
+              where("password", "==", password)
+            );
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+              const userData = querySnapshot.docs[0].data();
+              alert(`✅ Login successful!\nWelcome, ${userData.full_name}!`);
+            } else {
+              alert("❌ Invalid email or password.");
+            }
+          } catch (err) {
+            console.error(err);
+            alert("❌ Error while logging in.");
+          }
+        });
+      });
+
+      // Form toggle
+      window.showForm = function (type) {
+        document.getElementById("loginForm").classList.remove("active");
+        document.getElementById("registerForm").classList.remove("active");
+        document.getElementById("loginTab").classList.remove("active");
+        document.getElementById("registerTab").classList.remove("active");
+
+        if (type === "login") {
+          document.getElementById("loginForm").classList.add("active");
+          document.getElementById("loginTab").classList.add("active");
+        } else {
+          document.getElementById("registerForm").classList.add("active");
+          document.getElementById("registerTab").classList.add("active");
+        }
+      };
+    </script>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="tab-buttons">
+        <button id="loginTab" class="active" onclick="showForm('login')">
+          Login
+        </button>
+        <button id="registerTab" onclick="showForm('register')">
+          Register
+        </button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" class="form active">
+        <h2>Already Have An Account? Login Here</h2>
+        <input type="email" id="loginEmail" placeholder="Email" required />
+        <input
+          type="password"
+          id="loginPassword"
+          placeholder="Password"
+          required
+        />
+        <button type="submit">Login</button>
+      </form>
+
+      <!-- Register Form -->
+      <form id="registerForm" class="form">
+        <h2>New Student? Register Here</h2>
+        <input type="text" id="fullName" placeholder="Full Name" required />
+        <input type="email" id="email" placeholder="Email" required />
+        <input type="password" id="password" placeholder="Password" required />
+        <input type="text" id="college" placeholder="College Name" required />
+        <input
+          type="text"
+          id="gateCode"
+          placeholder="GATE Paper Code"
+          required
+        />
+        <button type="submit">Register</button>
+      </form>
+    </div>
+  </body>
+</html>
